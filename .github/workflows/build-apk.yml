@@ -1,36 +1,17 @@
-name: Build APK
+- name: Build APK
+  run: |
+    GRADLEW=$(find project -type f -name gradlew | head -n 1)
 
-on:
-  workflow_dispatch:
+    if [ -z "$GRADLEW" ]; then
+      echo "gradlew tidak ditemukan di ZIP"
+      find project -maxdepth 3 -type f | head -100
+      exit 1
+    fi
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+    echo "gradlew ditemukan di: $GRADLEW"
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    PROJECT_DIR=$(dirname "$GRADLEW")
+    cd "$PROJECT_DIR"
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Find and extract ZIP
-        run: |
-          unzip -q *.zip -d project
-          cd project
-          echo "Isi project:"
-          ls -la
-
-      - name: Build APK
-        run: |
-          cd project
-          if [ -f gradlew ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug
-          else
-            echo "gradlew tidak ditemukan di ZIP"
-            exit 1
-          fi
+    chmod +x gradlew
+    ./gradlew assembleDebug
